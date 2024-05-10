@@ -11,7 +11,7 @@ import (
 	"time"
 
 	// "github.com/deliveroo/pkg/env"
-	"github.com/gocraft/work"
+	"github.com/ardianaiqbal/work"
 	"github.com/gomodule/redigo/redis"
 
 	// "github.com/kyoh86/richgo/config"
