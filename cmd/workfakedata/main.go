@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/gocraft/work"
+	"github.com/ardianaiqbal/work"
 	"github.com/gomodule/redigo/redis"
 )
 
