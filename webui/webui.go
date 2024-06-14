@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/ardianaiqbal/web"
 	"github.com/ardianaiqbal/work"
@@ -58,6 +59,7 @@ func NewServer(namespace string, pool *redis.Pool, hostPort string) *Server {
 		rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 		next(rw, r)
 	})
+	router.Get("/ping", (*context).ping)
 	router.Get("/queues", (*context).queues)
 	router.Get("/worker_pools", (*context).workerPools)
 	router.Get("/busy_workers", (*context).busyWorkers)
@@ -66,6 +68,7 @@ func NewServer(namespace string, pool *redis.Pool, hostPort string) *Server {
 	router.Get("/dead_jobs", (*context).deadJobs)
 	router.Post("/delete_dead_job/:died_at:\\d.*/:job_id", (*context).deleteDeadJob)
 	router.Post("/retry_dead_job/:died_at:\\d.*/:job_id", (*context).retryDeadJob)
+	router.Post("/retry_dead_job_type/:job_type", (*context).retryDeadJobOfType)
 	router.Post("/delete_all_dead_jobs", (*context).deleteAllDeadJobs)
 	router.Post("/retry_all_dead_jobs", (*context).retryAllDeadJobs)
 
@@ -98,6 +101,10 @@ func (w *Server) Start() {
 func (w *Server) Stop() {
 	w.server.Close()
 	w.wg.Wait()
+}
+
+func (c *context) ping(rw web.ResponseWriter, r *web.Request) {
+	render(rw, map[string]string{"ping": "pong", "current_time": time.Now().Format(time.RFC3339)}, nil)
 }
 
 func (c *context) queues(rw web.ResponseWriter, r *web.Request) {
@@ -210,6 +217,12 @@ func (c *context) retryDeadJob(rw web.ResponseWriter, r *web.Request) {
 	}
 
 	err = c.client.RetryDeadJob(diedAt, r.PathParams["job_id"])
+
+	render(rw, map[string]string{"status": "ok"}, err)
+}
+
+func (c *context) retryDeadJobOfType(rw web.ResponseWriter, r *web.Request) {
+	err := c.client.RetryDeadOfType(r.PathParams["job_type"])
 
 	render(rw, map[string]string{"status": "ok"}, err)
 }
